@@ -1,0 +1,89 @@
+plugins {
+    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("io.micronaut.application") version "3.7.0"
+    id("org.openapi.generator") version "6.2.1"
+}
+
+version = "0.1"
+group = "com.example"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    annotationProcessor("org.projectlombok:lombok")
+    annotationProcessor("io.micronaut:micronaut-http-validation")
+    annotationProcessor("io.micronaut.serde:micronaut-serde-processor")
+    implementation("io.micronaut.serde:micronaut-serde-jackson")
+    implementation("io.micronaut:micronaut-http-client")
+    implementation("io.micronaut.reactor:micronaut-reactor")
+    implementation("io.micronaut.reactor:micronaut-reactor-http-client")
+    implementation("jakarta.annotation:jakarta.annotation-api")
+    runtimeOnly("ch.qos.logback:logback-classic")
+    compileOnly("org.projectlombok:lombok")
+    implementation("io.micronaut:micronaut-validation")
+
+}
+
+
+application {
+    mainClass.set("com.example.Application")
+}
+java {
+    sourceCompatibility = JavaVersion.toVersion("17")
+    targetCompatibility = JavaVersion.toVersion("17")
+}
+
+graalvmNative.toolchainDetection = false
+micronaut {
+    runtime("netty")
+    testRuntime("junit5")
+    processing {
+        incremental(true)
+        annotations("com.example.*")
+    }
+}
+
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute(module("io.micronaut:micronaut-jackson-databind"))
+                .using(module("io.micronaut.serde:micronaut-serde-jackson:1.5.0"))
+    }
+}
+
+compileJava {
+    dependsOn tasks.openApiGenerate
+}
+
+openApiGenerate {
+    generatorName = "java-micronaut-server"
+    inputSpec = "$rootDir/src/main/resources/openapi.yaml"
+    apiPackage = "com.example.llong.lol.lol.lol.library.http.api"
+    invokerPackage = "com.example.llong.lol.lol.lol.library.http.api"
+    modelPackage = "com.example.llong.lol.lol.lol.library.http.api"
+    globalProperties = [
+            docs: "false",
+            apis: "false",
+            models: "ConfigurationItem"
+    ]
+    configOptions = [
+            generateControllerAsAbstract: "true",
+            generateSwaggerAnnotations: "false",
+            openApiNullable: "false",
+            reactive: "true",
+            useAuth: "false",
+            generateOperationsToReturnNotImplemented: "false"
+    ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs += "build/generate-resources/main/src/main/java"
+        }
+    }
+}
+
+
+
